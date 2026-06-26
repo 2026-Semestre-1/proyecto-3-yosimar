@@ -13,7 +13,7 @@ import java.util.HexFormat;
  */
 public class Usuario {
 
-    public static final int TAMANIO = 128;
+    public static final int TAMANIO = 192;
     public static final int MAX_NOMBRE = 32;
     public static final int MAX_COMPLETO = 64;
 
