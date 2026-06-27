@@ -12,8 +12,8 @@ public class Sesion {
 
     private final DiscoVirtual disco;
     private final Superbloque superbloque;
-    private final AsignadorBloques asignador;
-    private final TablaInodos tablaInodos;
+    private AsignadorBloques asignador;
+    private TablaInodos tablaInodos;
     private final GestorUsuarios gestorUsuarios;
 
     private Usuario usuarioActual;
@@ -89,6 +89,8 @@ public class Sesion {
     public DiscoVirtual getDisco() { return disco; }
     public Superbloque getSuperbloque() { return superbloque; }
     public AsignadorBloques getAsignador() { return asignador; }
+    public void setAsignador(AsignadorBloques ab) { this.asignador = ab; }
     public TablaInodos getTablaInodos() { return tablaInodos; }
+    public void setTablaInodos(TablaInodos ti) { this.tablaInodos = ti; }
     public GestorUsuarios getGestorUsuarios() { return gestorUsuarios; }
 }
