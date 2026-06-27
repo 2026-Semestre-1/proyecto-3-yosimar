@@ -67,6 +67,11 @@ public class ShellFrame extends JFrame {
 
         addWindowListener(new WindowAdapter() {
             @Override
+            public void windowOpened(WindowEvent e) {
+                enfocarTerminalActual();
+            }
+
+            @Override
             public void windowClosing(WindowEvent e) {
                 try {
                     if (disco.estaAbierto()) {
@@ -82,6 +87,7 @@ public class ShellFrame extends JFrame {
 
         nuevaTerminal();
         setVisible(true);
+        enfocarTerminalActual();
     }
 
     private void cargarDisco(String ruta) {
@@ -154,6 +160,15 @@ public class ShellFrame extends JFrame {
         tabbedPane.setTabComponentAt(index - 1, tabTitle);
         tabbedPane.setSelectedIndex(index - 1);
         tab.enfocarEntrada();
+    }
+
+    private void enfocarTerminalActual() {
+        SwingUtilities.invokeLater(() -> {
+            Component c = tabbedPane.getSelectedComponent();
+            if (c instanceof TerminalTab tt) {
+                tt.enfocarEntrada();
+            }
+        });
     }
 
     @Override

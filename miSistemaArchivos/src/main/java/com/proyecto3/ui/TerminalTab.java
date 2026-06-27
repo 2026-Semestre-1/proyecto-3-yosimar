@@ -100,6 +100,7 @@ public class TerminalTab extends JPanel {
         areaSalida.setForeground(FG_TERMINAL);
         areaSalida.setFont(MONO_FONT);
         areaSalida.setEditable(false);
+        areaSalida.setFocusable(false);
         areaSalida.setCaretColor(FG_TERMINAL);
 
         JScrollPane scroll = new JScrollPane(areaSalida);
