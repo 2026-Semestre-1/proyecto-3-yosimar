@@ -305,6 +305,7 @@ public class GestorUsuarios {
         inodo.setTamanio(datos.length);
         inodo.setFechaModificacion(System.currentTimeMillis());
         tablaInodos.guardarEnDisco();
+        asignador.guardarEnDisco();
     }
 
     public Usuario crearUsuario(String nombre, String nombreCompleto, String password, int gid, int inodoHome) {

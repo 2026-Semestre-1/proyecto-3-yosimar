@@ -64,7 +64,6 @@ public class ComandoFormat implements Comando {
 
             asignador = new AsignadorBloques(disco, layout);
             asignador.inicializarBitmap();
-            asignador.guardarEnDisco();
 
             tablaInodos = new TablaInodos(disco, layout, totalInodos);
             tablaInodos.inicializarTabla();
@@ -78,11 +77,16 @@ public class ComandoFormat implements Comando {
             superbloque.setInodoRaiz(inodoRaizNum);
             superbloque.guardar(disco);
 
+            Directorio dirRaiz = new Directorio(disco, asignador, tablaInodos, inodoRaizNum);
+            dirRaiz.inicializarDirectorio(inodoRaizNum);
+            dirRaiz.guardar();
+
             gestorUsuarios = new GestorUsuarios();
             gestorUsuarios.inicializarSistema(passwordRoot, inodoRaizNum,
                 disco, asignador, tablaInodos);
 
             tablaInodos.guardarEnDisco();
+            asignador.guardarEnDisco();
 
             StringBuilder sb = new StringBuilder();
             sb.append("Disco formateado exitosamente: ").append(ruta).append("\n");
