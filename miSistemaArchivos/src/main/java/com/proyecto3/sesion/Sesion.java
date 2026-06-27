@@ -15,6 +15,7 @@ public class Sesion {
     private AsignadorBloques asignador;
     private TablaInodos tablaInodos;
     private final GestorUsuarios gestorUsuarios;
+    private final TablaArchivosAbiertos tablaArchivosAbiertos;
 
     private Usuario usuarioActual;
     private int inodoDirectorioTrabajo;
@@ -34,6 +35,7 @@ public class Sesion {
         this.asignador = asignador;
         this.tablaInodos = tablaInodos;
         this.gestorUsuarios = gestorUsuarios;
+        this.tablaArchivosAbiertos = new TablaArchivosAbiertos();
         this.inodoDirectorioTrabajo = superbloque.getInodoRaiz();
     }
 
@@ -93,4 +95,5 @@ public class Sesion {
     public TablaInodos getTablaInodos() { return tablaInodos; }
     public void setTablaInodos(TablaInodos ti) { this.tablaInodos = ti; }
     public GestorUsuarios getGestorUsuarios() { return gestorUsuarios; }
+    public TablaArchivosAbiertos getTablaArchivosAbiertos() { return tablaArchivosAbiertos; }
 }
