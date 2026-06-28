@@ -118,6 +118,14 @@ public class TablaInodos {
         inodos[numero].setNumero(numero);
     }
 
+    public int contarLibres() {
+        int libres = 0;
+        for (Inodo inodo : inodos) {
+            if (inodo.esLibre()) libres++;
+        }
+        return libres;
+    }
+
     // Accesores y mutadores para los atributos de la tabla de inodos
     public Inodo getInodo(int numero) {
         if (numero < 0 || numero >= totalInodos) {

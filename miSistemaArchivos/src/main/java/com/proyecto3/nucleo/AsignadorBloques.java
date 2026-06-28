@@ -161,4 +161,9 @@ public class AsignadorBloques {
             }
         }
     }
+
+    public long contarLibresEnDisco() {
+        contarLibres();
+        return bloquesLibres;
+    }
 }

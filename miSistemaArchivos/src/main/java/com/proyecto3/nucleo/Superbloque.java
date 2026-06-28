@@ -138,6 +138,10 @@ public class Superbloque {
         return nombreFs;
     }
 
+    public int getMagic() {
+        return MAGIC;
+    }
+
     public void setNombreFs(String n) {
         this.nombreFs = n;
     }

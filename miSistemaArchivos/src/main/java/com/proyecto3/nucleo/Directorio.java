@@ -156,6 +156,15 @@ public class Directorio {
         entradas.add(new EntradaDirectorio(PUNTO_PUNTO, inodoPadre));
     }
 
+    public void actualizarPadre(int nuevoInodoPadre) throws IOException {
+        for (int i = 0; i < entradas.size(); i++) {
+            if (PUNTO_PUNTO.equals(entradas.get(i).getNombre())) {
+                entradas.set(i, new EntradaDirectorio(PUNTO_PUNTO, nuevoInodoPadre));
+                return;
+            }
+        }
+    }
+
     public int getNumeroInodo() { return inodoDirectorio.getNumero(); }
 
     public int getInodoPadre() {

@@ -11,10 +11,12 @@ public class CommandDispatcher {
 
     private final Sesion sesion;
     private final Map<String, Comando> comandos;
+    private ComandoNote editorActivo;
 
     public CommandDispatcher(Sesion sesion) {
         this.sesion = sesion;
         this.comandos = new HashMap<>();
+        this.editorActivo = null;
 
         comandos.put("format", new ComandoFormat());
         comandos.put("whoami", new ComandoWhoami(sesion));
@@ -32,6 +34,10 @@ public class CommandDispatcher {
         comandos.put("chgrp", new ComandoChgrp(sesion));
         comandos.put("ln", new ComandoLn(sesion));
         comandos.put("whereis", new ComandoWhereis(sesion));
+        comandos.put("note", new ComandoNote(sesion));
+        comandos.put("mv", new ComandoMv(sesion));
+        comandos.put("viewfcb", new ComandoViewFCB(sesion));
+        comandos.put("infofs", new ComandoInfoFS(sesion));
 
         if (sesion.estaAutenticado()) {
             comandos.put("useradd", new ComandoUseradd(sesion));
@@ -82,6 +88,20 @@ public class CommandDispatcher {
         }
 
         String resultado = cmd.ejecutar(args);
+
+        if ("note".equals(nombreCmd)) {
+            ComandoNote note = (ComandoNote) cmd;
+            if (note.estaActivo()) {
+                editorActivo = note;
+                String display = resultado;
+                if (display.startsWith(ComandoNote.__NOTE_ENTER__)) {
+                    display = display.substring(ComandoNote.__NOTE_ENTER__.length());
+                }
+                flushDisco();
+                return display;
+            }
+        }
+
         flushDisco();
         return resultado;
     }
@@ -108,7 +128,7 @@ public class CommandDispatcher {
     }
 
     private boolean esComandoPendiente(String nombre) {
-        return java.util.Set.of("mv", "viewFCB", "infoFS", "note")
+        return java.util.Set.of()
             .contains(nombre);
     }
 
@@ -121,6 +141,27 @@ public class CommandDispatcher {
             return null;
         }
         return "Login fallido: usuario o contraseña incorrectos";
+    }
+
+    public boolean tieneEditorActivo() { return editorActivo != null && editorActivo.estaActivo(); }
+
+    public String getNombreArchivoEditor() {
+        return editorActivo != null ? editorActivo.getNombreArchivo() : "";
+    }
+
+    public String procesarEditor(String linea) {
+        if (editorActivo == null) return null;
+        String resultado = editorActivo.procesarComandoEditor(linea);
+
+        if (resultado != null && resultado.startsWith(ComandoNote.__NOTE_EXIT__)) {
+            String mensaje = resultado.substring(ComandoNote.__NOTE_EXIT__.length());
+            editorActivo = null;
+            flushDisco();
+            return mensaje;
+        }
+
+        flushDisco();
+        return resultado;
     }
 
     public String getPrompt() {

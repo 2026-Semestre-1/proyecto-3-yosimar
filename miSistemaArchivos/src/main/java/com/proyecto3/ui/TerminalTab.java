@@ -183,7 +183,7 @@ public class TerminalTab extends JPanel {
                 loginUsuario = null;
             } else {
                 appendLn("Sesión iniciada como " + loginUsuario + ".", FG_TERMINAL);
-                appendLn("Comandos disponibles: mkdir, cd, pwd, ls, rm, whoami, su, useradd, groupadd, passwd, clear, exit", Color.GRAY);
+                appendLn("Comandos: mkdir, cd, pwd, ls, rm, touch, cat, less, note, chmod, chown, chgrp, ln, whereis, viewFilesOpen, whoami, su, useradd, groupadd, passwd, clear, exit", Color.GRAY);
                 loginUsuario = null;
                 actualizarPrompt();
                 append(dispatcher.getPrompt());
@@ -199,7 +199,30 @@ public class TerminalTab extends JPanel {
             return;
         }
 
+        if (dispatcher.tieneEditorActivo()) {
+            procesarEntradaEditor(entrada);
+            return;
+        }
+
         ejecutarComando(entrada);
+    }
+
+    private void procesarEntradaEditor(String entrada) {
+        String result = dispatcher.procesarEditor(entrada);
+        if (result == null) return;
+
+        if (!result.isEmpty()) {
+            appendLn(result, FG_TERMINAL);
+        }
+
+        actualizarPrompt();
+
+        if (dispatcher.tieneEditorActivo()) {
+            append("[note:" + dispatcher.getNombreArchivoEditor() + "] ");
+        } else {
+            append(dispatcher.estaAutenticado() ? dispatcher.getPrompt()
+                : ((disco != null && disco.estaAbierto()) ? "login: " : ""));
+        }
     }
 
     private void ejecutarComando(String linea) {
@@ -251,8 +274,13 @@ public class TerminalTab extends JPanel {
         }
 
         actualizarPrompt();
-        append(dispatcher.estaAutenticado() ? dispatcher.getPrompt()
-            : ((disco != null && disco.estaAbierto()) ? "login: " : ""));
+
+        if (dispatcher.tieneEditorActivo()) {
+            append("[note:" + dispatcher.getNombreArchivoEditor() + "] ");
+        } else {
+            append(dispatcher.estaAutenticado() ? dispatcher.getPrompt()
+                : ((disco != null && disco.estaAbierto()) ? "login: " : ""));
+        }
     }
 
     private void actualizarPrompt() {
