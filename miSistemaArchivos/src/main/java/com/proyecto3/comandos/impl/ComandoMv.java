@@ -86,6 +86,8 @@ public class ComandoMv implements Comando {
                         moverADirectorio = true;
                         inodoDestFinal = inodoDest.getNumero();
                         nombreFinal = nombreOrigen;
+                    } else {
+                        return "mv: el destino ya existe";
                     }
                 }
             }

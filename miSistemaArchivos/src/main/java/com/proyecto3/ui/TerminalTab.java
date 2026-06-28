@@ -22,6 +22,7 @@ public class TerminalTab extends JPanel {
     private final AsignadorBloques asignador;
     private final TablaInodos tablaInodos;
     private final GestorUsuarios gestorUsuarios;
+    private final TablaArchivosAbiertos tablaArchivosAbiertos;
     private Sesion sesion;
     private CommandDispatcher dispatcher;
 
@@ -34,19 +35,27 @@ public class TerminalTab extends JPanel {
     private boolean esperandoUsuario;
     private boolean esperandoPassword;
     private boolean esperandoFormatPass;
+    private boolean esperandoUseraddNombre;
+    private boolean esperandoUseraddPass;
+    private boolean esperandoUseraddConfirm;
     private String loginUsuario;
     private String formatArgs;
 
     public TerminalTab(DiscoVirtual disco, Superbloque superbloque, AsignadorBloques asignador,
-                       TablaInodos tablaInodos, GestorUsuarios gestorUsuarios) {
+                       TablaInodos tablaInodos, GestorUsuarios gestorUsuarios,
+                       TablaArchivosAbiertos tablaArchivosAbiertos) {
         this.disco = disco;
         this.superbloque = superbloque;
         this.asignador = asignador;
         this.tablaInodos = tablaInodos;
         this.gestorUsuarios = gestorUsuarios;
+        this.tablaArchivosAbiertos = tablaArchivosAbiertos;
         this.esperandoUsuario = false;
         this.esperandoPassword = false;
         this.esperandoFormatPass = false;
+        this.esperandoUseraddNombre = false;
+        this.esperandoUseraddPass = false;
+        this.esperandoUseraddConfirm = false;
 
         initUI();
         configurarSesion();
@@ -54,7 +63,8 @@ public class TerminalTab extends JPanel {
 
     private void configurarSesion() {
         sesion = new Sesion(disco, superbloque, asignador, tablaInodos, gestorUsuarios);
-        dispatcher = new CommandDispatcher(sesion);
+        sesion.setTablaArchivosAbiertos(tablaArchivosAbiertos);
+        dispatcher = new CommandDispatcher(sesion, tablaArchivosAbiertos);
 
         if (disco == null || !disco.estaAbierto()) {
             appendLn("No hay disco cargado.", FG_WHITE);
@@ -204,6 +214,45 @@ public class TerminalTab extends JPanel {
             return;
         }
 
+        if (esperandoUseraddNombre) {
+            esperandoUseraddNombre = false;
+            String resp = dispatcher.procesarUseradd(entrada);
+            if (resp.equals("Password: ") || resp.equals("Confirmar password: ")) {
+                append(resp);
+                esperandoUseraddPass = true;
+            } else {
+                appendLn(resp, FG_TERMINAL);
+                actualizarPrompt();
+                append(dispatcher.getPrompt());
+            }
+            return;
+        }
+
+        if (esperandoUseraddPass) {
+            appendLn("****", FG_WHITE);
+            esperandoUseraddPass = false;
+            String resp = dispatcher.procesarUseraddPassword(entrada);
+            if (resp.equals("Confirmar password: ")) {
+                append(resp);
+                esperandoUseraddConfirm = true;
+            } else {
+                appendLn(resp, FG_TERMINAL);
+                actualizarPrompt();
+                append(dispatcher.getPrompt());
+            }
+            return;
+        }
+
+        if (esperandoUseraddConfirm) {
+            appendLn("****", FG_WHITE);
+            esperandoUseraddConfirm = false;
+            String resp = dispatcher.procesarUseraddConfirm(entrada);
+            appendLn(resp, FG_TERMINAL);
+            actualizarPrompt();
+            append(dispatcher.getPrompt());
+            return;
+        }
+
         ejecutarComando(entrada);
     }
 
@@ -274,6 +323,11 @@ public class TerminalTab extends JPanel {
         }
 
         actualizarPrompt();
+
+        if (dispatcher.tieneUseraddActivo()) {
+            esperandoUseraddNombre = true;
+            return;
+        }
 
         if (dispatcher.tieneEditorActivo()) {
             append("[note:" + dispatcher.getNombreArchivoEditor() + "] ");

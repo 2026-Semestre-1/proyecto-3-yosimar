@@ -84,6 +84,7 @@ public class Principal {
             gu.cargarDeDisco(disco, ti, ab);
 
             Sesion sesion = new Sesion(disco, sb, ab, ti, gu);
+            sesion.setTablaArchivosAbiertos(new TablaArchivosAbiertos());
             if (!sesion.login("root", TEST_PASSWORD)) {
                 sesion.login("root", "root123");
             }
@@ -91,7 +92,7 @@ public class Principal {
                 sesion.login("root", "admin123");
             }
 
-            CommandDispatcher dispatcher = new CommandDispatcher(sesion);
+            CommandDispatcher dispatcher = new CommandDispatcher(sesion, sesion.getTablaArchivosAbiertos());
             StringBuilder linea = new StringBuilder(nombreComando);
             for (String a : resto) {
                 linea.append(" \"").append(a).append("\"");
@@ -129,6 +130,7 @@ public class Principal {
 
             Sesion sesion = new Sesion(disco, sb, ab != null ? ab : new AsignadorBloques(disco, new LayoutDisco(1024*1024,512,64)),
                 ti, gu);
+            sesion.setTablaArchivosAbiertos(new TablaArchivosAbiertos());
 
             if (discoRuta != null && disco.estaAbierto()) {
                 if (!sesion.login("root", TEST_PASSWORD)) {
@@ -139,7 +141,7 @@ public class Principal {
                 }
             }
 
-            CommandDispatcher dispatcher = new CommandDispatcher(sesion);
+            CommandDispatcher dispatcher = new CommandDispatcher(sesion, sesion.getTablaArchivosAbiertos());
             StringBuilder linea = new StringBuilder(nombreComando);
             for (String a : args) {
                 linea.append(" \"").append(a).append("\"");

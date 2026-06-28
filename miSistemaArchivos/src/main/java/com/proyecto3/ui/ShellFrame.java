@@ -15,6 +15,7 @@ public class ShellFrame extends JFrame {
     private AsignadorBloques asignador;
     private TablaInodos tablaInodos;
     private final GestorUsuarios gestorUsuarios;
+    private final TablaArchivosAbiertos tablaArchivosAbiertos;
     private boolean discoCargado;
 
     public ShellFrame() {
@@ -32,6 +33,7 @@ public class ShellFrame extends JFrame {
         asignador = null;
         tablaInodos = null;
         gestorUsuarios = new GestorUsuarios();
+        tablaArchivosAbiertos = new TablaArchivosAbiertos();
         discoCargado = false;
 
         tabbedPane = new JTabbedPane();
@@ -121,7 +123,8 @@ public class ShellFrame extends JFrame {
             superbloque,
             discoCargado ? asignador : null,
             discoCargado ? tablaInodos : null,
-            gestorUsuarios
+            gestorUsuarios,
+            tablaArchivosAbiertos
         );
 
         int index = tabbedPane.getTabCount();

@@ -67,6 +67,10 @@ public class ComandoNote implements Comando {
                 Inodo inodo = sesion.getTablaInodos().getInodo(entrada.getNumeroInodo());
                 if (inodo.esDirectorio()) return "Error: '" + nombreArchivo + "' es un directorio";
 
+                if (!PermisoUtil.verificar(inodo, sesion, PermisoUtil.BIT_LECTURA)) {
+                    return "note: permiso denegado para leer";
+                }
+
                 inodoArchivo = inodo.getNumero();
                 String contenido = GestorArchivos.leerDatosComoTexto(inodo,
                     sesion.getDisco(), sesion.getAsignador());
@@ -206,6 +210,12 @@ public class ComandoNote implements Comando {
     }
 
     private void guardar() throws Exception {
+        if (inodoArchivo >= 0) {
+            Inodo inodoExistente = sesion.getTablaInodos().getInodo(inodoArchivo);
+            if (!PermisoUtil.verificar(inodoExistente, sesion, PermisoUtil.BIT_ESCRITURA)) {
+                throw new Exception("note: permiso denegado para escribir");
+            }
+        }
         String contenido = "";
         for (int i = 0; i < buffer.size(); i++) {
             if (i > 0) contenido += "\n";
@@ -222,7 +232,7 @@ public class ComandoNote implements Comando {
             nuevoInodo.setTipo(Inodo.ARCHIVO);
             nuevoInodo.setUid(sesion.getUsuarioActual().getUid());
             nuevoInodo.setGid(sesion.getUsuarioActual().getGid());
-            nuevoInodo.setPermisos((short) 0644);
+            nuevoInodo.setPermisos((short) 064);
 
             GestorArchivos.escribirDatosInodo(nuevoInodo, datos,
                 sesion.getDisco(), sesion.getAsignador());
@@ -232,7 +242,8 @@ public class ComandoNote implements Comando {
 
             inodoArchivo = nuevoInodo.getNumero();
             sesion.getTablaArchivosAbiertos().abrir(inodoArchivo,
-                TablaArchivosAbiertos.MODO_ESCRITURA);
+                TablaArchivosAbiertos.MODO_ESCRITURA,
+                sesion.getUsuarioActual().getNombre(), nombreArchivo);
         } else {
             Inodo inodo = sesion.getTablaInodos().getInodo(inodoArchivo);
             GestorArchivos.escribirDatosInodo(inodo, datos,

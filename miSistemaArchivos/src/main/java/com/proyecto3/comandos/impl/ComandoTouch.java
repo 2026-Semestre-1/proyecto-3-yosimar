@@ -50,6 +50,11 @@ public class ComandoTouch implements Comando {
             Directorio dirDestino = new Directorio(sesion.getDisco(), sesion.getAsignador(),
                 sesion.getTablaInodos(), inodoDir);
 
+            Inodo inodoPadre = sesion.getTablaInodos().getInodo(inodoDir);
+            if (!PermisoUtil.verificar(inodoPadre, sesion, PermisoUtil.BIT_ESCRITURA)) {
+                return "touch: permiso denegado";
+            }
+
             if (dirDestino.buscarEntrada(nombreArchivo) != null) {
                 return "Error: '" + nombreArchivo + "' ya existe";
             }
@@ -58,14 +63,15 @@ public class ComandoTouch implements Comando {
             nuevoInodo.setTipo(Inodo.ARCHIVO);
             nuevoInodo.setUid(sesion.getUsuarioActual().getUid());
             nuevoInodo.setGid(sesion.getUsuarioActual().getGid());
-            nuevoInodo.setPermisos((short) 0644);
+            nuevoInodo.setPermisos((short) 064);
             nuevoInodo.setTamanio(0);
 
             dirDestino.agregarEntrada(nombreArchivo, nuevoInodo.getNumero());
             dirDestino.guardar();
 
             sesion.getTablaArchivosAbiertos().abrir(nuevoInodo.getNumero(),
-                TablaArchivosAbiertos.MODO_ESCRITURA);
+                TablaArchivosAbiertos.MODO_ESCRITURA,
+                sesion.getUsuarioActual().getNombre(), ruta);
 
             return "Archivo '" + nombreArchivo + "' creado (inodo " + nuevoInodo.getNumero() + ")";
         } catch (Exception e) {

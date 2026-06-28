@@ -1,13 +1,12 @@
 package com.proyecto3.comandos.impl;
 
 import com.proyecto3.comandos.Comando;
-import com.proyecto3.seguridad.GestorUsuarios;
 import com.proyecto3.seguridad.Usuario;
 import com.proyecto3.sesion.Sesion;
 
 public class ComandoSu implements Comando {
 
-    private Sesion sesion;
+    private final Sesion sesion;
 
     public ComandoSu(Sesion sesion) {
         this.sesion = sesion;
@@ -18,29 +17,22 @@ public class ComandoSu implements Comando {
 
     @Override
     public String getAyuda() {
-        return "su <usuario> - Cambia al usuario especificado";
+        return "su [<usuario>] - Cambia al usuario especificado (sin args: root)";
     }
 
     @Override
     public String ejecutar(String[] args) {
-        if (args.length < 1) return "Uso: " + getAyuda();
+        String nombreDestino = (args.length >= 1) ? args[0] : "root";
 
-        String nombre = args[0];
-        GestorUsuarios gu = sesion.getGestorUsuarios();
-        Usuario u = gu.getUsuarioPorNombre(nombre);
-        if (u == null) return "Usuario '" + nombre + "' no encontrado";
-
-        if (sesion.esRoot()) {
-            sesion.su(nombre);
-            return "Ahora eres '" + nombre + "' (uid=" + u.getUid() + ")";
-        }
+        Usuario u = sesion.getGestorUsuarios().getUsuarioPorNombre(nombreDestino);
+        if (u == null) return "su: usuario '" + nombreDestino + "' no encontrado";
 
         String password = args.length >= 2 ? args[1] : "";
-        if (password.isEmpty()) return "Contraseña requerida para su";
+        if (password.isEmpty()) return "su: se requiere contraseña";
 
-        if (!u.verificarPassword(password)) return "Contraseña incorrecta";
+        if (!u.verificarPassword(password)) return "su: autenticación fallida";
 
-        sesion.su(nombre);
-        return "Ahora eres '" + nombre + "' (uid=" + u.getUid() + ")";
+        sesion.su(nombreDestino);
+        return "";
     }
 }

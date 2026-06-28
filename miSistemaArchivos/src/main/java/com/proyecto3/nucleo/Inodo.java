@@ -35,7 +35,7 @@ public class Inodo {
      */
     public Inodo() {
         this.tipo = LIBRE;
-        this.permisos = 0777;
+        this.permisos = 077;
         this.punterosDirectos = new int[PUNTEROS_DIRECTOS];
         this.punteroIndirecto = BLOQUE_NULO;
         // se pone punteros en nlo (-1) para indicar que no apuntan a ningún bloque

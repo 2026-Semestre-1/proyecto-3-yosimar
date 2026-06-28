@@ -32,6 +32,12 @@ public class ComandoCd implements Comando {
                 sesion.getTablaInodos(), sesion.getInodoDirectorioTrabajo());
 
             int nuevoInodo = dirActual.navegar(ruta, sesion.getSuperbloque());
+
+            Inodo inodoDestino = sesion.getTablaInodos().getInodo(nuevoInodo);
+            if (!PermisoUtil.verificar(inodoDestino, sesion, PermisoUtil.BIT_EJECUCION)) {
+                return "cd: permiso denegado";
+            }
+
             sesion.setInodoDirectorioTrabajo(nuevoInodo);
 
             Directorio dirDestino = new Directorio(sesion.getDisco(), sesion.getAsignador(),

@@ -57,6 +57,10 @@ public class ComandoLn implements Comando {
                 return "Error: no se pueden crear enlaces duros a directorios";
             }
 
+            if (!PermisoUtil.verificar(inodoOrigen, sesion, PermisoUtil.BIT_LECTURA)) {
+                return "ln: permiso denegado sobre '" + rutaOrigen + "'";
+            }
+
             String nombreDestino;
             int inodoDirDestino;
 

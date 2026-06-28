@@ -44,7 +44,20 @@ public class ComandoRm implements Comando {
             Directorio dirActual = new Directorio(sesion.getDisco(), sesion.getAsignador(),
                 sesion.getTablaInodos(), sesion.getInodoDirectorioTrabajo());
 
+            Inodo inodoCwd = sesion.getTablaInodos().getInodo(sesion.getInodoDirectorioTrabajo());
+            if (!PermisoUtil.verificar(inodoCwd, sesion, PermisoUtil.BIT_ESCRITURA)) {
+                return "rm: permiso denegado";
+            }
+
             for (String patron : nombres) {
+            if (".".equals(patron) || "..".equals(patron)) {
+                resultado.append("Error: no se puede borrar '").append(patron).append("'\n");
+                continue;
+            }
+            if ("/".equals(patron)) {
+                resultado.append("Error: no se puede borrar el directorio raíz\n");
+                continue;
+            }
                 if (patron.contains("/") || patron.contains("\\")) {
                     eliminarPorRuta(dirActual, patron, recursivo, resultado);
                 } else {

@@ -30,46 +30,44 @@ public class ComandoInfoFS implements Comando {
             Superbloque sb = sesion.getSuperbloque();
             AsignadorBloques asignador = sesion.getAsignador();
             TablaInodos tablaInodos = sesion.getTablaInodos();
-            LayoutDisco layout = sb.getLayout();
 
             long totalBloques = sb.getTotalBloques();
             long bloquesLibres = asignador.contarLibresEnDisco();
             long bloquesOcupados = totalBloques - bloquesLibres;
+            int tamanioBloque = sb.getTamanioBloque();
+
+            long espacioUsadoBytes = bloquesOcupados * tamanioBloque;
+            long espacioLibreBytes = bloquesLibres * tamanioBloque;
 
             int totalInodos = sb.getTotalInodos();
             int inodosLibres = tablaInodos.contarLibres();
             int inodosOcupados = totalInodos - inodosLibres;
 
-            double usoBloques = totalBloques > 0 ? 100.0 * bloquesOcupados / totalBloques : 0;
-            double usoInodos = totalInodos > 0 ? 100.0 * inodosOcupados / totalInodos : 0;
+            String usadoStr;
+            if (espacioUsadoBytes >= 1024 * 1024) {
+                usadoStr = String.format("%.1f MB", espacioUsadoBytes / (1024.0 * 1024.0));
+            } else {
+                usadoStr = String.format("%.1f KB", espacioUsadoBytes / 1024.0);
+            }
+            String libreStr;
+            if (espacioLibreBytes >= 1024 * 1024) {
+                libreStr = String.format("%.1f MB", espacioLibreBytes / (1024.0 * 1024.0));
+            } else {
+                libreStr = String.format("%.1f KB", espacioLibreBytes / 1024.0);
+            }
 
             StringBuilder sbInfo = new StringBuilder();
-            sbInfo.append("─────── Sistema de Archivos ───────\n");
-            sbInfo.append(String.format("  Nombre:             %s\n", sb.getNombreFs()));
-            sbInfo.append(String.format("  Magic:              0x%08X\n", sb.getMagic()));
-            sbInfo.append("\n");
-            sbInfo.append(String.format("  Tamaño total:       %d bytes (%.2f MB)\n",
-                sb.getTamanioTotal(), sb.getTamanioTotal() / (1024.0 * 1024.0)));
-            sbInfo.append(String.format("  Tamaño de bloque:   %d bytes\n", sb.getTamanioBloque()));
-            sbInfo.append(String.format("  Total de bloques:   %d\n", totalBloques));
-            sbInfo.append(String.format("  Bloques libres:     %d\n", bloquesLibres));
-            sbInfo.append(String.format("  Bloques ocupados:   %d (%.1f%%)\n", bloquesOcupados, usoBloques));
-            sbInfo.append("\n");
-            sbInfo.append(String.format("  Total de inodos:    %d\n", totalInodos));
-            sbInfo.append(String.format("  Inodos libres:      %d\n", inodosLibres));
-            sbInfo.append(String.format("  Inodos ocupados:    %d (%.1f%%)\n", inodosOcupados, usoInodos));
-            sbInfo.append("\n");
-            sbInfo.append("  Layout:\n");
-            sbInfo.append(String.format("    Superbloque:      bloque 0\n"));
-            sbInfo.append(String.format("    Bitmap:           bloques %d..%d\n",
-                layout.getBloqueInicioBitmap(),
-                layout.getBloqueInicioInodos() - 1));
-            sbInfo.append(String.format("    Tabla inodos:     bloques %d..%d\n",
-                layout.getBloqueInicioInodos(),
-                layout.getBloqueInicioDatos() - 1));
-            sbInfo.append(String.format("    Datos:            bloques %d..%d\n",
-                layout.getBloqueInicioDatos(), totalBloques - 1));
-            sbInfo.append(String.format("    Inodo raíz:       %d\n", sb.getInodoRaiz()));
+            sbInfo.append("Nombre del FileSystem: ").append(sb.getNombreFs()).append("\n");
+            sbInfo.append(String.format("Tamaño total:          %d MB (%d bytes)\n",
+                sb.getTamanioTotal() / (1024 * 1024), sb.getTamanioTotal()));
+            sbInfo.append(String.format("Tamaño de bloque:      %d bytes\n", tamanioBloque));
+            sbInfo.append(String.format("Total de bloques:      %d\n", totalBloques));
+            sbInfo.append(String.format("Bloques ocupados:      %d\n", bloquesOcupados));
+            sbInfo.append(String.format("Bloques libres:        %d\n", bloquesLibres));
+            sbInfo.append(String.format("Total de inodos:       %d\n", totalInodos));
+            sbInfo.append(String.format("Inodos usados:         %d\n", inodosOcupados));
+            sbInfo.append(String.format("Espacio utilizado:     %s\n", usadoStr));
+            sbInfo.append(String.format("Espacio disponible:    %s\n", libreStr));
 
             return sbInfo.toString().trim();
         } catch (Exception e) {

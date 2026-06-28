@@ -1,6 +1,7 @@
 package com.proyecto3.comandos;
 
 import com.proyecto3.comandos.impl.*;
+import com.proyecto3.nucleo.TablaArchivosAbiertos;
 import com.proyecto3.sesion.Sesion;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -10,11 +11,14 @@ import java.util.Map;
 public class CommandDispatcher {
 
     private final Sesion sesion;
+    private final TablaArchivosAbiertos tablaArchivosAbiertos;
     private final Map<String, Comando> comandos;
     private ComandoNote editorActivo;
+    private ComandoUseradd useraddActivo;
 
-    public CommandDispatcher(Sesion sesion) {
+    public CommandDispatcher(Sesion sesion, TablaArchivosAbiertos tablaArchivosAbiertos) {
         this.sesion = sesion;
+        this.tablaArchivosAbiertos = tablaArchivosAbiertos;
         this.comandos = new HashMap<>();
         this.editorActivo = null;
 
@@ -102,6 +106,14 @@ public class CommandDispatcher {
             }
         }
 
+        if ("useradd".equals(nombreCmd)) {
+            if (resultado != null && resultado.startsWith(ComandoUseradd.__USERADD_PROMPT_NAME__)) {
+                useraddActivo = (ComandoUseradd) cmd;
+                flushDisco();
+                return "Nombre completo: ";
+            }
+        }
+
         flushDisco();
         return resultado;
     }
@@ -145,8 +157,55 @@ public class CommandDispatcher {
 
     public boolean tieneEditorActivo() { return editorActivo != null && editorActivo.estaActivo(); }
 
+    public boolean tieneUseraddActivo() { return useraddActivo != null && useraddActivo.estaEnProceso(); }
+
     public String getNombreArchivoEditor() {
         return editorActivo != null ? editorActivo.getNombreArchivo() : "";
+    }
+
+    public String procesarUseradd(String linea) {
+        if (useraddActivo == null) return null;
+        String result = useraddActivo.procesarNombreCompleto(linea);
+        if (ComandoUseradd.__USERADD_PROMPT_PASS__.equals(result)) {
+            flushDisco();
+            return "Password: ";
+        }
+        if (ComandoUseradd.__USERADD_PROMPT_NAME__.equals(result)) {
+            return "Nombre completo: ";
+        }
+        if (!ComandoUseradd.__USERADD_PROMPT_CONFIRM__.equals(result)) {
+            useraddActivo = null;
+            flushDisco();
+            return result;
+        }
+        flushDisco();
+        return "Confirmar password: ";
+    }
+
+    public String procesarUseraddPassword(String linea) {
+        if (useraddActivo == null) return null;
+        String result = useraddActivo.procesarPassword(linea);
+        if (ComandoUseradd.__USERADD_PROMPT_CONFIRM__.equals(result)) {
+            flushDisco();
+            return "Confirmar password: ";
+        }
+        if (ComandoUseradd.__USERADD_PROMPT_PASS__.equals(result)) {
+            return "Password: ";
+        }
+        useraddActivo = null;
+        return result;
+    }
+
+    public String procesarUseraddConfirm(String linea) {
+        if (useraddActivo == null) return null;
+        String result = useraddActivo.procesarConfirmar(linea);
+        if (ComandoUseradd.__USERADD_PROMPT_PASS__.equals(result)) {
+            useraddActivo = null;
+            return result;
+        }
+        useraddActivo = null;
+        flushDisco();
+        return result;
     }
 
     public String procesarEditor(String linea) {

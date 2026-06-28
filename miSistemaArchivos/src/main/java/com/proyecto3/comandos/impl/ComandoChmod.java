@@ -35,7 +35,7 @@ public class ComandoChmod implements Comando {
             } catch (NumberFormatException e) {
                 return "Error: modo invalido '" + modoStr + "'. Use octal (ej: 755)";
             }
-            if (modo < 0 || modo > 07777) {
+            if (modo < 0 || modo > 077) {
                 return "Error: modo invalido. Use octal (ej: 755)";
             }
 

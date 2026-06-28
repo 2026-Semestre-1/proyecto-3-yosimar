@@ -1,12 +1,11 @@
 package com.proyecto3.comandos.impl;
 
 import com.proyecto3.comandos.Comando;
-import com.proyecto3.seguridad.Usuario;
 import com.proyecto3.sesion.Sesion;
 
 public class ComandoWhoami implements Comando {
 
-    private Sesion sesion;
+    private final Sesion sesion;
 
     public ComandoWhoami(Sesion sesion) {
         this.sesion = sesion;
@@ -24,7 +23,7 @@ public class ComandoWhoami implements Comando {
     public String ejecutar(String[] args) {
         if (!sesion.estaAutenticado()) return "Nadie (sin sesión)";
 
-        Usuario u = sesion.getUsuarioActual();
-        return u.getNombre() + " (uid=" + u.getUid() + ", gid=" + u.getGid() + ")";
+        var u = sesion.getUsuarioActual();
+        return "username: " + u.getNombre() + "\nFull name: " + u.getNombreCompleto();
     }
 }

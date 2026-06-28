@@ -57,32 +57,42 @@ public class ComandoViewFCB implements Comando {
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
             String tipo = inodo.esDirectorio() ? "Directorio" : "Archivo";
+            int bloquesUsados = 0;
+            for (int i = 0; i < Inodo.PUNTEROS_DIRECTOS; i++) {
+                if (inodo.getPunteroDirecto(i) != Inodo.BLOQUE_NULO) bloquesUsados++;
+            }
+            if (inodo.getPunteroIndirecto() != Inodo.BLOQUE_NULO) bloquesUsados++;
 
             StringBuilder sb = new StringBuilder();
-            sb.append("─────── FCB: ").append(nombreArchivo).append(" ───────\n");
-            sb.append(String.format("  Inodo:          %d\n", inodo.getNumero()));
-            sb.append(String.format("  Tipo:           %s\n", tipo));
-            sb.append(String.format("  Permisos:       %04o\n", inodo.getPermisos()));
-            sb.append(String.format("  Dueño (uid):    %d\n", inodo.getUid()));
-            sb.append(String.format("  Grupo (gid):    %d\n", inodo.getGid()));
-            sb.append(String.format("  Tamaño:         %d bytes\n", inodo.getTamanio()));
-            sb.append(String.format("  Enlaces:        %d\n", inodo.getEnlaces()));
-            sb.append(String.format("  Creado:         %s\n", sdf.format(new Date(inodo.getFechaCreacion()))));
-            sb.append(String.format("  Modificado:     %s\n", sdf.format(new Date(inodo.getFechaModificacion()))));
-            sb.append(String.format("  Abierto:        %s\n", inodo.isAbierto() ? "si" : "no"));
+            sb.append("=== FCB / Inodo: ").append(nombreArchivo).append(" ===\n");
+            sb.append(String.format("  Número de inodo:   %d\n", inodo.getNumero()));
+            sb.append(String.format("  Tipo:              %s\n", tipo));
+            sb.append(String.format("  Dueño (uid):       %d\n", inodo.getUid()));
+            sb.append(String.format("  Grupo (gid):       %d\n", inodo.getGid()));
+            sb.append(String.format("  Permisos:          %02o\n", inodo.getPermisos()));
+            sb.append(String.format("  Tamaño:            %d bytes\n", inodo.getTamanio()));
+            sb.append(String.format("  Bloques usados:    %d\n", bloquesUsados));
+            sb.append(String.format("  Contador enlaces:  %d\n", inodo.getEnlaces()));
+            sb.append(String.format("  Estado:            %s\n", inodo.isAbierto() ? "Abierto" : "Cerrado"));
+            sb.append(String.format("  Fecha creación:    %s\n", sdf.format(new Date(inodo.getFechaCreacion()))));
+            sb.append(String.format("  Fecha modificación:%s\n", sdf.format(new Date(inodo.getFechaModificacion()))));
 
-            if (!inodo.esDirectorio()) {
-                sb.append("  Bloques directos:\n");
-                for (int i = 0; i < Inodo.PUNTEROS_DIRECTOS; i++) {
-                    int bloque = inodo.getPunteroDirecto(i);
-                    if (bloque != Inodo.BLOQUE_NULO) {
-                        sb.append(String.format("    [%d] bloque %d\n", i, bloque));
-                    }
+            sb.append("  Punteros directos: ");
+            for (int i = 0; i < Inodo.PUNTEROS_DIRECTOS; i++) {
+                int bloque = inodo.getPunteroDirecto(i);
+                if (bloque != Inodo.BLOQUE_NULO) {
+                    sb.append("[").append(bloque).append("] ");
+                } else {
+                    sb.append("[-] ");
                 }
-                int indirecto = inodo.getPunteroIndirecto();
-                if (indirecto != Inodo.BLOQUE_NULO) {
-                    sb.append(String.format("    indirecto: bloque %d\n", indirecto));
-                }
+            }
+            sb.append("\n");
+
+            int indirecto = inodo.getPunteroIndirecto();
+            if (indirecto != Inodo.BLOQUE_NULO) {
+                sb.append(String.format("  Puntero indirecto: %d\n", indirecto));
+            } else {
+                sb.append("  Puntero indirecto: ninguno\n");
             }
 
             return sb.toString().trim();

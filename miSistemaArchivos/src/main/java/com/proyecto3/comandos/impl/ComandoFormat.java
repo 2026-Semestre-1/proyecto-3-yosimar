@@ -3,6 +3,7 @@ package com.proyecto3.comandos.impl;
 import com.proyecto3.comandos.Comando;
 import com.proyecto3.nucleo.*;
 import com.proyecto3.seguridad.GestorUsuarios;
+import com.proyecto3.seguridad.Usuario;
 import java.io.File;
 import java.io.IOException;
 
@@ -72,7 +73,7 @@ public class ComandoFormat implements Comando {
             inodoRaiz.setTipo(Inodo.DIRECTORIO);
             inodoRaiz.setUid(GestorUsuarios.UID_ROOT);
             inodoRaiz.setGid(GestorUsuarios.GID_ROOT);
-            inodoRaiz.setPermisos((short) 0777);
+            inodoRaiz.setPermisos((short) 077);
             int inodoRaizNum = inodoRaiz.getNumero();
             superbloque.setInodoRaiz(inodoRaizNum);
             superbloque.guardar(disco);
@@ -84,6 +85,26 @@ public class ComandoFormat implements Comando {
             gestorUsuarios = new GestorUsuarios();
             gestorUsuarios.inicializarSistema(passwordRoot, inodoRaizNum,
                 disco, asignador, tablaInodos);
+
+            Inodo inodoRootHome = tablaInodos.asignarInodo();
+            inodoRootHome.setTipo(Inodo.DIRECTORIO);
+            inodoRootHome.setUid(GestorUsuarios.UID_ROOT);
+            inodoRootHome.setGid(GestorUsuarios.GID_ROOT);
+            inodoRootHome.setPermisos((short) 075);
+            int inodoRootHomeNum = inodoRootHome.getNumero();
+
+            Directorio dirRootHome = new Directorio(disco, asignador, tablaInodos, inodoRootHomeNum);
+            dirRootHome.inicializarDirectorio(inodoRaizNum);
+            dirRootHome.guardar();
+
+            dirRaiz.agregarEntrada("root", inodoRootHomeNum);
+            dirRaiz.guardar();
+
+            Usuario rootUser = gestorUsuarios.getRoot();
+            if (rootUser != null) {
+                rootUser.setInodoHome(inodoRootHomeNum);
+                gestorUsuarios.guardarEnDisco(disco, asignador, tablaInodos);
+            }
 
             tablaInodos.guardarEnDisco();
             asignador.guardarEnDisco();

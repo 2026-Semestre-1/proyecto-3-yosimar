@@ -7,8 +7,8 @@ import java.util.Map;
 
 public class TablaArchivosAbiertos {
 
-    public static final String MODO_LECTURA = "r";
-    public static final String MODO_ESCRITURA = "w";
+    public static final String MODO_LECTURA = "lectura";
+    public static final String MODO_ESCRITURA = "escritura";
 
     private final Map<Integer, EntradaTabla> abiertos;
 
@@ -16,8 +16,8 @@ public class TablaArchivosAbiertos {
         this.abiertos = new HashMap<>();
     }
 
-    public void abrir(int numInodo, String modo) {
-        abiertos.put(numInodo, new EntradaTabla(numInodo, modo));
+    public void abrir(int numInodo, String modo, String usuario, String ruta) {
+        abiertos.put(numInodo, new EntradaTabla(numInodo, modo, usuario, ruta));
     }
 
     public void cerrar(int numInodo) {
@@ -44,16 +44,22 @@ public class TablaArchivosAbiertos {
         private final int numInodo;
         private int posicion;
         private final String modo;
+        private final String usuario;
+        private final String ruta;
 
-        public EntradaTabla(int numInodo, String modo) {
+        public EntradaTabla(int numInodo, String modo, String usuario, String ruta) {
             this.numInodo = numInodo;
             this.posicion = 0;
             this.modo = modo;
+            this.usuario = usuario;
+            this.ruta = ruta;
         }
 
         public int getNumInodo() { return numInodo; }
         public int getPosicion() { return posicion; }
         public void setPosicion(int pos) { this.posicion = pos; }
         public String getModo() { return modo; }
+        public String getUsuario() { return usuario; }
+        public String getRuta() { return ruta; }
     }
 }

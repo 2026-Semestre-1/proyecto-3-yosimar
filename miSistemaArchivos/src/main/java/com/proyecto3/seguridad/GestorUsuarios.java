@@ -234,7 +234,7 @@ public class GestorUsuarios {
             inodo.setTipo(Inodo.ARCHIVO);
             inodo.setUid(UID_ROOT);
             inodo.setGid(GID_ROOT);
-            inodo.setPermisos((short) 0600);
+            inodo.setPermisos((short) 060);
         }
 
         for (int i = 0; i < Inodo.PUNTEROS_DIRECTOS; i++) {

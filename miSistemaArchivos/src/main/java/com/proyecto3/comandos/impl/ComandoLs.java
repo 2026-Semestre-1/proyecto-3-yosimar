@@ -44,6 +44,11 @@ public class ComandoLs implements Comando {
                 inodoObjetivo = dirActual.navegar(ruta, sesion.getSuperbloque());
             }
 
+            Inodo inodoObj = sesion.getTablaInodos().getInodo(inodoObjetivo);
+            if (!PermisoUtil.verificar(inodoObj, sesion, PermisoUtil.BIT_LECTURA)) {
+                return "ls: permiso denegado";
+            }
+
             StringBuilder sb = new StringBuilder();
             listarDirectorio(inodoObjetivo, "", recursivo, sb);
             return sb.toString().trim();
@@ -84,8 +89,6 @@ public class ComandoLs implements Comando {
     }
 
     private String formatoEntrada(EntradaDirectorio e, Inodo inodo) {
-        String tipo = inodo.esDirectorio() ? "d" : "-";
-        String permisos = String.format("%03o", inodo.getPermisos());
-        return String.format("%s %s %5d %s", tipo, permisos, inodo.getTamanio(), e.getNombre());
+        return inodo.esDirectorio() ? "[DIR]  " + e.getNombre() : "[ARCH] " + e.getNombre();
     }
 }

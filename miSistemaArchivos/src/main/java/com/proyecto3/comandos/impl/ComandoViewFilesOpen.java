@@ -25,6 +25,8 @@ public class ComandoViewFilesOpen implements Comando {
         if (!sesion.estaAutenticado()) return "No hay sesión activa";
 
         TablaArchivosAbiertos tabla = sesion.getTablaArchivosAbiertos();
+        if (tabla == null) return "No hay archivos abiertos";
+
         var abiertos = tabla.listar();
 
         if (abiertos.isEmpty()) {
@@ -32,14 +34,12 @@ public class ComandoViewFilesOpen implements Comando {
         }
 
         StringBuilder sb = new StringBuilder();
-        sb.append(String.format("%-6s %-6s %-8s\n", "INODO", "MODO", "POS"));
-        sb.append("──────────────────────\n");
+        sb.append("Total de archivos abiertos: ").append(abiertos.size()).append("\n");
+        int idx = 0;
         for (var e : abiertos) {
-            sb.append(String.format("%-6d %-6s %-8d\n",
-                e.getNumInodo(), e.getModo(), e.getPosicion()));
+            sb.append(String.format("  [%d] inodo=%-4d modo=%-8s usuario=%-10s archivo=%s\n",
+                idx++, e.getNumInodo(), e.getModo(), e.getUsuario(), e.getRuta()));
         }
-        sb.append("Total: ").append(abiertos.size()).append(" archivo(s) abierto(s)");
-
         return sb.toString().trim();
     }
 }

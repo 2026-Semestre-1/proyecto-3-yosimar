@@ -24,6 +24,7 @@ public class ComandoChgrp implements Comando {
     @Override
     public String ejecutar(String[] args) {
         if (!sesion.estaAutenticado()) return "No hay sesión activa";
+        if (!sesion.esRoot()) return "chgrp: solo root puede cambiar el grupo";
         if (args.length < 2) return "Uso: " + getAyuda();
 
         String nombreGrupo = args[0];
@@ -57,10 +58,6 @@ public class ComandoChgrp implements Comando {
             if (entrada == null) return "Error: archivo no encontrado: " + ruta;
 
             Inodo inodo = sesion.getTablaInodos().getInodo(entrada.getNumeroInodo());
-
-            if (inodo.getUid() != sesion.getUsuarioActual().getUid() && !sesion.esRoot()) {
-                return "Error: solo el dueño o root puede cambiar el grupo";
-            }
 
             int gidAnterior = inodo.getGid();
             inodo.setGid(nuevoGrupo.getGid());

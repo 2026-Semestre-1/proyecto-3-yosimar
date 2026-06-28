@@ -57,11 +57,20 @@ public class ComandoCat implements Comando {
                 return "Error: '" + nombreArchivo + "' no es un archivo";
             }
 
-            sesion.getTablaArchivosAbiertos().abrir(inodo.getNumero(),
-                TablaArchivosAbiertos.MODO_LECTURA);
+            if (!PermisoUtil.verificar(inodo, sesion, PermisoUtil.BIT_LECTURA)) {
+                return "cat: permiso denegado";
+            }
 
-            return GestorArchivos.leerDatosComoTexto(inodo, sesion.getDisco(),
+            sesion.getTablaArchivosAbiertos().abrir(inodo.getNumero(),
+                TablaArchivosAbiertos.MODO_LECTURA,
+                sesion.getUsuarioActual().getNombre(), ruta);
+
+            String contenido = GestorArchivos.leerDatosComoTexto(inodo, sesion.getDisco(),
                 sesion.getAsignador());
+
+            sesion.getTablaArchivosAbiertos().cerrar(inodo.getNumero());
+
+            return contenido;
         } catch (Exception e) {
             return "Error: " + e.getMessage();
         }

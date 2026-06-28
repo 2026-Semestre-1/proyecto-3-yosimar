@@ -17,7 +17,7 @@ public class ComandoMkdir implements Comando {
 
     @Override
     public String getAyuda() {
-        return "mkdir <ruta> - Crea un nuevo directorio";
+        return "mkdir <nombre>... - Crea uno o más directorios";
     }
 
     @Override
@@ -25,7 +25,15 @@ public class ComandoMkdir implements Comando {
         if (!sesion.estaAutenticado()) return "No hay sesión activa";
         if (args.length < 1) return "Uso: " + getAyuda();
 
-        String ruta = args[0];
+        StringBuilder resultado = new StringBuilder();
+        for (String ruta : args) {
+            if (!resultado.isEmpty()) resultado.append("\n");
+            resultado.append(crearDirectorio(ruta));
+        }
+        return resultado.toString().trim();
+    }
+
+    private String crearDirectorio(String ruta) {
 
         try {
             Directorio dirActual = new Directorio(sesion.getDisco(), sesion.getAsignador(),
@@ -50,6 +58,11 @@ public class ComandoMkdir implements Comando {
             Directorio dirPadre = new Directorio(sesion.getDisco(), sesion.getAsignador(),
                 sesion.getTablaInodos(), inodoPadre);
 
+            Inodo inodoDirPadre = sesion.getTablaInodos().getInodo(inodoPadre);
+            if (!PermisoUtil.verificar(inodoDirPadre, sesion, PermisoUtil.BIT_ESCRITURA)) {
+                return "mkdir: permiso denegado";
+            }
+
             if (dirPadre.buscarEntrada(nombreDir) != null) {
                 return "Error: '" + nombreDir + "' ya existe";
             }
@@ -58,7 +71,7 @@ public class ComandoMkdir implements Comando {
             nuevoInodo.setTipo(Inodo.DIRECTORIO);
             nuevoInodo.setUid(sesion.getUsuarioActual().getUid());
             nuevoInodo.setGid(sesion.getUsuarioActual().getGid());
-            nuevoInodo.setPermisos((short) 0755);
+            nuevoInodo.setPermisos((short) 075);
 
             Directorio nuevoDir = new Directorio(sesion.getDisco(), sesion.getAsignador(),
                 sesion.getTablaInodos(), nuevoInodo.getNumero());

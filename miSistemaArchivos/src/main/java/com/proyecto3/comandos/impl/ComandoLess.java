@@ -57,6 +57,14 @@ public class ComandoLess implements Comando {
                 return "Error: '" + nombreArchivo + "' no es un archivo";
             }
 
+            if (!PermisoUtil.verificar(inodo, sesion, PermisoUtil.BIT_LECTURA)) {
+                return "less: permiso denegado";
+            }
+
+            sesion.getTablaArchivosAbiertos().abrir(inodo.getNumero(),
+                TablaArchivosAbiertos.MODO_LECTURA,
+                sesion.getUsuarioActual().getNombre(), ruta);
+
             String contenido = GestorArchivos.leerDatosComoTexto(inodo, sesion.getDisco(),
                 sesion.getAsignador());
 
