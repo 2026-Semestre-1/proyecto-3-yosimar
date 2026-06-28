@@ -23,6 +23,15 @@ public class CommandDispatcher {
         comandos.put("mkdir", new ComandoMkdir(sesion));
         comandos.put("ls", new ComandoLs(sesion));
         comandos.put("rm", new ComandoRm(sesion));
+        comandos.put("touch", new ComandoTouch(sesion));
+        comandos.put("cat", new ComandoCat(sesion));
+        comandos.put("less", new ComandoLess(sesion));
+        comandos.put("viewfilesopen", new ComandoViewFilesOpen(sesion));
+        comandos.put("chmod", new ComandoChmod(sesion));
+        comandos.put("chown", new ComandoChown(sesion));
+        comandos.put("chgrp", new ComandoChgrp(sesion));
+        comandos.put("ln", new ComandoLn(sesion));
+        comandos.put("whereis", new ComandoWhereis(sesion));
 
         if (sesion.estaAutenticado()) {
             comandos.put("useradd", new ComandoUseradd(sesion));
@@ -99,8 +108,7 @@ public class CommandDispatcher {
     }
 
     private boolean esComandoPendiente(String nombre) {
-        return java.util.Set.of("touch", "cat", "less", "mv", "ln", "whereis",
-            "chown", "chgrp", "chmod", "viewFilesOpen", "viewFCB", "infoFS", "note")
+        return java.util.Set.of("mv", "viewFCB", "infoFS", "note")
             .contains(nombre);
     }
 

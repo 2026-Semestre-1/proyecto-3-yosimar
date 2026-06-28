@@ -20,7 +20,7 @@ public class ComandoRm implements Comando {
 
     @Override
     public String getAyuda() {
-        return "rm [-R] <nombre|patrón> - Elimina archivos/directorios. -R para recursivo";
+        return "rm [-R] <nombre|patrón|ruta> - Elimina archivos/directorios. -R para recursivo";
     }
 
     @Override
@@ -43,16 +43,20 @@ public class ComandoRm implements Comando {
         try {
             Directorio dirActual = new Directorio(sesion.getDisco(), sesion.getAsignador(),
                 sesion.getTablaInodos(), sesion.getInodoDirectorioTrabajo());
-            List<EntradaDirectorio> todas = dirActual.listarEntradas();
 
             for (String patron : nombres) {
-                List<EntradaDirectorio> coincidencias = buscarCoincidencias(todas, patron);
-                if (coincidencias.isEmpty()) {
-                    resultado.append("Sin coincidencias para: ").append(patron).append("\n");
-                    continue;
-                }
-                for (EntradaDirectorio entrada : coincidencias) {
-                    eliminarEntrada(dirActual, entrada, recursivo, resultado);
+                if (patron.contains("/") || patron.contains("\\")) {
+                    eliminarPorRuta(dirActual, patron, recursivo, resultado);
+                } else {
+                    List<EntradaDirectorio> todas = dirActual.listarEntradas();
+                    List<EntradaDirectorio> coincidencias = buscarCoincidencias(todas, patron);
+                    if (coincidencias.isEmpty()) {
+                        resultado.append("Sin coincidencias para: ").append(patron).append("\n");
+                        continue;
+                    }
+                    for (EntradaDirectorio entrada : coincidencias) {
+                        eliminarEntrada(dirActual, entrada, recursivo, resultado);
+                    }
                 }
             }
 
@@ -61,6 +65,29 @@ public class ComandoRm implements Comando {
         } catch (Exception e) {
             return "Error: " + e.getMessage();
         }
+    }
+
+    private void eliminarPorRuta(Directorio dirActual, String ruta, boolean recursivo,
+                                  StringBuilder resultado) throws Exception {
+        int lastSep = Math.max(ruta.lastIndexOf('/'), ruta.lastIndexOf('\\'));
+        if (lastSep < 0) return;
+
+        String nombreArchivo = ruta.substring(lastSep + 1);
+        String rutaDir = ruta.substring(0, lastSep);
+        if (rutaDir.isEmpty()) rutaDir = "/";
+
+        int inodoDir = dirActual.navegar(rutaDir, sesion.getSuperbloque());
+        Directorio dirPadre = new Directorio(sesion.getDisco(), sesion.getAsignador(),
+            sesion.getTablaInodos(), inodoDir);
+
+        EntradaDirectorio entrada = dirPadre.buscarEntrada(nombreArchivo);
+        if (entrada == null) {
+            resultado.append("Sin coincidencias para: ").append(ruta).append("\n");
+            return;
+        }
+
+        eliminarEntrada(dirPadre, entrada, recursivo, resultado);
+        dirPadre.guardar();
     }
 
     private List<EntradaDirectorio> buscarCoincidencias(List<EntradaDirectorio> entradas, String patron) {
@@ -105,10 +132,19 @@ public class ComandoRm implements Comando {
             dir.eliminarEntrada(entrada.getNombre());
             resultado.append("Eliminado directorio: ").append(entrada.getNombre()).append("\n");
         } else {
-            liberarBloquesInodo(inodo);
-            sesion.getTablaInodos().liberarInodo(inodo.getNumero());
-            dir.eliminarEntrada(entrada.getNombre());
-            resultado.append("Eliminado: ").append(entrada.getNombre()).append("\n");
+            int enlaces = inodo.getEnlaces() - 1;
+            if (enlaces > 0) {
+                inodo.setEnlaces(enlaces);
+                inodo.setFechaModificacion(System.currentTimeMillis());
+                dir.eliminarEntrada(entrada.getNombre());
+                resultado.append("Eliminado enlace: ").append(entrada.getNombre())
+                    .append(" (").append(enlaces).append(" enlaces restantes)\n");
+            } else {
+                liberarBloquesInodo(inodo);
+                sesion.getTablaInodos().liberarInodo(inodo.getNumero());
+                dir.eliminarEntrada(entrada.getNombre());
+                resultado.append("Eliminado: ").append(entrada.getNombre()).append("\n");
+            }
         }
     }
 

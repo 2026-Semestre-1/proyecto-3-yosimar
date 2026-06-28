@@ -17,7 +17,7 @@ public class ComandoMkdir implements Comando {
 
     @Override
     public String getAyuda() {
-        return "mkdir <nombre> - Crea un nuevo directorio";
+        return "mkdir <ruta> - Crea un nuevo directorio";
     }
 
     @Override
@@ -25,15 +25,33 @@ public class ComandoMkdir implements Comando {
         if (!sesion.estaAutenticado()) return "No hay sesión activa";
         if (args.length < 1) return "Uso: " + getAyuda();
 
-        String nombre = args[0];
-        if (nombre.contains("/")) return "Error: el nombre no puede contener '/'";
+        String ruta = args[0];
 
         try {
             Directorio dirActual = new Directorio(sesion.getDisco(), sesion.getAsignador(),
                 sesion.getTablaInodos(), sesion.getInodoDirectorioTrabajo());
 
-            if (dirActual.buscarEntrada(nombre) != null) {
-                return "Error: '" + nombre + "' ya existe";
+            String nombreDir;
+            int inodoPadre;
+
+            int lastSep = Math.max(ruta.lastIndexOf('/'), ruta.lastIndexOf('\\'));
+            if (lastSep >= 0) {
+                nombreDir = ruta.substring(lastSep + 1);
+                String rutaPadre = ruta.substring(0, lastSep);
+                if (rutaPadre.isEmpty()) rutaPadre = "/";
+                inodoPadre = dirActual.navegar(rutaPadre, sesion.getSuperbloque());
+            } else {
+                nombreDir = ruta;
+                inodoPadre = sesion.getInodoDirectorioTrabajo();
+            }
+
+            if (nombreDir.isEmpty()) return "Error: nombre de directorio vacío";
+
+            Directorio dirPadre = new Directorio(sesion.getDisco(), sesion.getAsignador(),
+                sesion.getTablaInodos(), inodoPadre);
+
+            if (dirPadre.buscarEntrada(nombreDir) != null) {
+                return "Error: '" + nombreDir + "' ya existe";
             }
 
             Inodo nuevoInodo = sesion.getTablaInodos().asignarInodo();
@@ -44,13 +62,13 @@ public class ComandoMkdir implements Comando {
 
             Directorio nuevoDir = new Directorio(sesion.getDisco(), sesion.getAsignador(),
                 sesion.getTablaInodos(), nuevoInodo.getNumero());
-            nuevoDir.inicializarDirectorio(sesion.getInodoDirectorioTrabajo());
+            nuevoDir.inicializarDirectorio(inodoPadre);
             nuevoDir.guardar();
 
-            dirActual.agregarEntrada(nombre, nuevoInodo.getNumero());
-            dirActual.guardar();
+            dirPadre.agregarEntrada(nombreDir, nuevoInodo.getNumero());
+            dirPadre.guardar();
 
-            return "Directorio '" + nombre + "' creado";
+            return "Directorio '" + nombreDir + "' creado";
         } catch (Exception e) {
             return "Error al crear directorio: " + e.getMessage();
         }
