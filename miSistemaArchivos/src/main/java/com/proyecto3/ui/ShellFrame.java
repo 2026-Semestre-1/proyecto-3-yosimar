@@ -92,6 +92,10 @@ public class ShellFrame extends JFrame {
         enfocarTerminalActual();
     }
 
+    public void onDiscoFormateado() {
+        discoCargado = true;
+    }
+
     private void cargarDisco(String ruta) {
         try {
             if (disco != null && disco.estaAbierto()) {

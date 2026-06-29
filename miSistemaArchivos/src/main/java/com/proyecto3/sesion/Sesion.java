@@ -10,7 +10,7 @@ import com.proyecto3.seguridad.Usuario;
  */
 public class Sesion {
 
-    private final DiscoVirtual disco;
+    private DiscoVirtual disco;
     private final Superbloque superbloque;
     private AsignadorBloques asignador;
     private TablaInodos tablaInodos;
@@ -89,6 +89,7 @@ public class Sesion {
     public void setInodoDirectorioTrabajo(int inodo) { this.inodoDirectorioTrabajo = inodo; }
 
     public DiscoVirtual getDisco() { return disco; }
+    public void setDisco(DiscoVirtual d) { this.disco = d; }
     public Superbloque getSuperbloque() { return superbloque; }
     public AsignadorBloques getAsignador() { return asignador; }
     public void setAsignador(AsignadorBloques ab) { this.asignador = ab; }

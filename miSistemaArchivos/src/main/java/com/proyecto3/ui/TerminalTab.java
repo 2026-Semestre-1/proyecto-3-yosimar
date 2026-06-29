@@ -284,6 +284,14 @@ public class TerminalTab extends JPanel {
 
         String resultado = dispatcher.despachar(entrada);
 
+        if (entrada.toLowerCase().startsWith("format ") && resultado != null
+            && !resultado.startsWith("Uso:") && !resultado.startsWith("Error")) {
+            java.awt.Window window = SwingUtilities.getWindowAncestor(this);
+            if (window instanceof ShellFrame sf) {
+                sf.onDiscoFormateado();
+            }
+        }
+
         if (resultado == null) {
             areaSalida.setText("");
             actualizarPrompt();

@@ -1,6 +1,7 @@
 package com.proyecto3.comandos;
 
 import com.proyecto3.comandos.impl.*;
+import com.proyecto3.nucleo.DiscoVirtual;
 import com.proyecto3.nucleo.TablaArchivosAbiertos;
 import com.proyecto3.sesion.Sesion;
 import java.util.ArrayList;
@@ -243,7 +244,9 @@ public class CommandDispatcher {
 
     private void cargarDiscoFormateado(String ruta) {
         try {
-            if (sesion.getDisco().estaAbierto()) {
+            if (sesion.getDisco() == null) {
+                sesion.setDisco(new DiscoVirtual(512));
+            } else if (sesion.getDisco().estaAbierto()) {
                 sesion.getDisco().cerrar();
             }
             sesion.getDisco().abrirDisco(ruta);
