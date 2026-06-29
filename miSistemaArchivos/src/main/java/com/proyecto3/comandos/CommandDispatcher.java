@@ -18,6 +18,7 @@ public class CommandDispatcher {
     private ComandoUseradd useraddActivo;
     private String promptCache;
     private int promptInodoCache;
+    private String promptUsuarioCache;
 
     public CommandDispatcher(Sesion sesion, TablaArchivosAbiertos tablaArchivosAbiertos) {
         this.sesion = sesion;
@@ -214,7 +215,9 @@ public class CommandDispatcher {
         if (!sesion.estaAutenticado()) return "login: ";
 
         int cwdActual = sesion.getInodoDirectorioTrabajo();
-        if (promptCache != null && promptInodoCache == cwdActual) {
+        String usuarioActual = sesion.getUsuarioActual().getNombre();
+        if (promptCache != null && promptInodoCache == cwdActual
+            && usuarioActual.equals(promptUsuarioCache)) {
             return promptCache;
         }
 
@@ -223,8 +226,9 @@ public class CommandDispatcher {
                 sesion.getDisco(), sesion.getAsignador(), sesion.getTablaInodos(), cwdActual);
             String ruta = dir.obtenerRutaAbsoluta(sesion.getSuperbloque());
             String nombreFs = sesion.getSuperbloque().getNombreFs();
-            promptCache = sesion.getUsuarioActual().getNombre() + "@" + nombreFs + ":" + ruta + " $ ";
+            promptCache = usuarioActual + "@" + nombreFs + ":" + ruta + " $ ";
             promptInodoCache = cwdActual;
+            promptUsuarioCache = usuarioActual;
             return promptCache;
         } catch (Exception e) {
             return sesion.getUsuarioActual().getNombre() + "@?:? $ ";

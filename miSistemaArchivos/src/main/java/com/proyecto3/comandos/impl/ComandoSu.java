@@ -33,6 +33,6 @@ public class ComandoSu implements Comando {
         if (!u.verificarPassword(password)) return "su: autenticación fallida";
 
         sesion.su(nombreDestino);
-        return "";
+        return "su: usuario cambiado a " + nombreDestino;
     }
 }
