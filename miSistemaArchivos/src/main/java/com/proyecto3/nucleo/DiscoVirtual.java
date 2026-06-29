@@ -60,7 +60,7 @@ public class DiscoVirtual {
      * @return
      * @throws IOException
      */
-    public byte[] leerBloque(int numBloque) throws IOException {
+    public synchronized byte[] leerBloque(int numBloque) throws IOException {
         verificarAbierto();
         byte[] datos = new byte[tamanioBloque];
         archivo.seek((long) numBloque * tamanioBloque);
@@ -74,18 +74,17 @@ public class DiscoVirtual {
      * @param datos
      * @throws IOException
      */
-    public void escribirBloque(int numBloque, byte[] datos) throws IOException {
+    public synchronized void escribirBloque(int numBloque, byte[] datos) throws IOException {
         verificarAbierto();
         if (datos.length > tamanioBloque) {
             throw new IllegalArgumentException(
                 "Los datos (" + datos.length + " bytes) exceden el tamaño de bloque (" + tamanioBloque + " bytes)"
             );
         }
-        // Se crea un bloque completo, rellenando con ceros si los datos son menores que el tamaño del bloque
         byte[] bloque = new byte[tamanioBloque];
-        System.arraycopy(datos, 0, bloque, 0, datos.length); // Copia los datos al bloque, dejando el resto como ceros
+        System.arraycopy(datos, 0, bloque, 0, datos.length);
         archivo.seek((long) numBloque * tamanioBloque);
-        archivo.write(bloque); // Escribe el bloque completo en el disco virtual
+        archivo.write(bloque);
     }
 
     /**

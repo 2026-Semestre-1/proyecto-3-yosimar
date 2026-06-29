@@ -15,6 +15,8 @@ public class CommandDispatcher {
     private final Map<String, Comando> comandos;
     private ComandoNote editorActivo;
     private ComandoUseradd useraddActivo;
+    private String promptCache;
+    private int promptInodoCache;
 
     public CommandDispatcher(Sesion sesion, TablaArchivosAbiertos tablaArchivosAbiertos) {
         this.sesion = sesion;
@@ -77,11 +79,6 @@ public class CommandDispatcher {
             return "Debe iniciar sesión primero. Use: login <usuario> <password>";
         }
 
-        if ("su".equals(nombreCmd) || "useradd".equals(nombreCmd) || "groupadd".equals(nombreCmd)
-            || "passwd".equals(nombreCmd)) {
-            actualizarComandosSesion();
-        }
-
         if ("format".equals(nombreCmd)) {
             String resultado = cmd.ejecutar(args);
             if (!resultado.startsWith("Error")) {
@@ -118,16 +115,21 @@ public class CommandDispatcher {
         return resultado;
     }
 
-    private void actualizarComandosSesion() {
-        comandos.put("useradd", new ComandoUseradd(sesion));
-        comandos.put("groupadd", new ComandoGroupadd(sesion));
-        comandos.put("passwd", new ComandoPasswd(sesion));
-        comandos.put("su", new ComandoSu(sesion));
+    public String procesarLogin(String usuario, String password) {
+        if (sesion.login(usuario, password)) {
+            comandos.put("useradd", new ComandoUseradd(sesion));
+            comandos.put("groupadd", new ComandoGroupadd(sesion));
+            comandos.put("passwd", new ComandoPasswd(sesion));
+            comandos.put("su", new ComandoSu(sesion));
+            return null;
+        }
+        return "Login fallido: usuario o contraseña incorrectos";
     }
 
     private void flushDisco() {
         try {
-            if (sesion.getDisco() != null && sesion.getDisco().estaAbierto()) {
+            if (sesion.getDisco() != null && sesion.getDisco().estaAbierto()
+                && sesion.getAsignador() != null && sesion.getTablaInodos() != null) {
                 sesion.getAsignador().guardarEnDisco();
                 sesion.getTablaInodos().guardarEnDisco();
             }
@@ -144,17 +146,6 @@ public class CommandDispatcher {
             .contains(nombre);
     }
 
-    public String procesarLogin(String usuario, String password) {
-        if (sesion.login(usuario, password)) {
-            comandos.put("useradd", new ComandoUseradd(sesion));
-            comandos.put("groupadd", new ComandoGroupadd(sesion));
-            comandos.put("passwd", new ComandoPasswd(sesion));
-            comandos.put("su", new ComandoSu(sesion));
-            return null;
-        }
-        return "Login fallido: usuario o contraseña incorrectos";
-    }
-
     public boolean tieneEditorActivo() { return editorActivo != null && editorActivo.estaActivo(); }
 
     public boolean tieneUseraddActivo() { return useraddActivo != null && useraddActivo.estaEnProceso(); }
@@ -167,7 +158,6 @@ public class CommandDispatcher {
         if (useraddActivo == null) return null;
         String result = useraddActivo.procesarNombreCompleto(linea);
         if (ComandoUseradd.__USERADD_PROMPT_PASS__.equals(result)) {
-            flushDisco();
             return "Password: ";
         }
         if (ComandoUseradd.__USERADD_PROMPT_NAME__.equals(result)) {
@@ -175,10 +165,8 @@ public class CommandDispatcher {
         }
         if (!ComandoUseradd.__USERADD_PROMPT_CONFIRM__.equals(result)) {
             useraddActivo = null;
-            flushDisco();
             return result;
         }
-        flushDisco();
         return "Confirmar password: ";
     }
 
@@ -186,7 +174,6 @@ public class CommandDispatcher {
         if (useraddActivo == null) return null;
         String result = useraddActivo.procesarPassword(linea);
         if (ComandoUseradd.__USERADD_PROMPT_CONFIRM__.equals(result)) {
-            flushDisco();
             return "Confirmar password: ";
         }
         if (ComandoUseradd.__USERADD_PROMPT_PASS__.equals(result)) {
@@ -219,19 +206,25 @@ public class CommandDispatcher {
             return mensaje;
         }
 
-        flushDisco();
         return resultado;
     }
 
     public String getPrompt() {
         if (!sesion.estaAutenticado()) return "login: ";
+
+        int cwdActual = sesion.getInodoDirectorioTrabajo();
+        if (promptCache != null && promptInodoCache == cwdActual) {
+            return promptCache;
+        }
+
         try {
             com.proyecto3.nucleo.Directorio dir = new com.proyecto3.nucleo.Directorio(
-                sesion.getDisco(), sesion.getAsignador(), sesion.getTablaInodos(),
-                sesion.getInodoDirectorioTrabajo());
+                sesion.getDisco(), sesion.getAsignador(), sesion.getTablaInodos(), cwdActual);
             String ruta = dir.obtenerRutaAbsoluta(sesion.getSuperbloque());
             String nombreFs = sesion.getSuperbloque().getNombreFs();
-            return sesion.getUsuarioActual().getNombre() + "@" + nombreFs + ":" + ruta + " $ ";
+            promptCache = sesion.getUsuarioActual().getNombre() + "@" + nombreFs + ":" + ruta + " $ ";
+            promptInodoCache = cwdActual;
+            return promptCache;
         } catch (Exception e) {
             return sesion.getUsuarioActual().getNombre() + "@?:? $ ";
         }

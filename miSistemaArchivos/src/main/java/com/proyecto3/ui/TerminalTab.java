@@ -86,7 +86,6 @@ public class TerminalTab extends JPanel {
         esperandoUsuario = true;
     }
 
-    @SuppressWarnings("unused")
     private void initUI() {
         setLayout(new BorderLayout());
 

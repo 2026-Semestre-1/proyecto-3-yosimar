@@ -127,13 +127,14 @@ public class ShellFrame extends JFrame {
             tablaArchivosAbiertos
         );
 
-        int index = tabbedPane.getTabCount();
-        String titulo = "Terminal " + (tabbedPane.getTabCount());
-        tabbedPane.insertTab(titulo, null, tab, null, index - 1);
+        int count = tabbedPane.getTabCount();
+        int insertPos = count - 1;
+        String titulo = "Terminal " + count;
+        tabbedPane.insertTab(titulo, null, tab, null, insertPos);
 
         JPanel tabTitle = new JPanel(new FlowLayout(FlowLayout.LEFT, 4, 0));
         tabTitle.setOpaque(false);
-        JLabel label = new JLabel("T" + (tabbedPane.getTabCount() - 1));
+        JLabel label = new JLabel("T" + count);
         label.setForeground(new Color(200, 200, 200));
         label.setFont(new Font("Monospaced", Font.PLAIN, 11));
         tabTitle.add(label);
@@ -160,8 +161,8 @@ public class ShellFrame extends JFrame {
         });
         tabTitle.add(btnCerrar);
 
-        tabbedPane.setTabComponentAt(index - 1, tabTitle);
-        tabbedPane.setSelectedIndex(index - 1);
+        tabbedPane.setTabComponentAt(insertPos, tabTitle);
+        tabbedPane.setSelectedIndex(insertPos);
         tab.enfocarEntrada();
     }
 
