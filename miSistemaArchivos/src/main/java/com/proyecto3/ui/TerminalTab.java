@@ -5,7 +5,7 @@ import com.proyecto3.nucleo.*;
 import com.proyecto3.seguridad.GestorUsuarios;
 import com.proyecto3.sesion.Sesion;
 import java.awt.*;
-import java.awt.event.*;
+import java.awt.event.ActionEvent;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 
@@ -25,6 +25,7 @@ public class TerminalTab extends JPanel {
     private final TablaArchivosAbiertos tablaArchivosAbiertos;
     private Sesion sesion;
     private CommandDispatcher dispatcher;
+    private boolean discoCargado;
 
     private JLabel labelPrompt;
     private JLabel labelUsuario;
@@ -65,8 +66,9 @@ public class TerminalTab extends JPanel {
         sesion = new Sesion(disco, superbloque, asignador, tablaInodos, gestorUsuarios);
         sesion.setTablaArchivosAbiertos(tablaArchivosAbiertos);
         dispatcher = new CommandDispatcher(sesion, tablaArchivosAbiertos);
+        discoCargado = (disco != null && disco.estaAbierto());
 
-        if (disco == null || !disco.estaAbierto()) {
+        if (!discoCargado) {
             appendLn("No hay disco cargado.", FG_WHITE);
             appendLn("Use: format <archivo.fs> <MB> <inodos>", Color.ORANGE);
             appendLn("Ejemplo: format miDiscoDuro.fs 10 256", Color.ORANGE);
@@ -79,7 +81,7 @@ public class TerminalTab extends JPanel {
     }
 
     private void pedirLoginInicial() {
-        if (disco == null || !disco.estaAbierto()) return;
+        if (sesion.getDisco() == null || !sesion.getDisco().estaAbierto()) return;
         appendLn("Sistema de archivos: " + superbloque.getNombreFs(), FG_WHITE);
         appendLn("Inicie sesión para continuar.", FG_WHITE);
         append("login: ");
@@ -125,14 +127,6 @@ public class TerminalTab extends JPanel {
         campoEntrada.setBorder(new EmptyBorder(4, 8, 4, 8));
 
         campoEntrada.addActionListener(this::procesarEntrada);
-        campoEntrada.addKeyListener(new KeyAdapter() {
-            @Override
-            public void keyPressed(KeyEvent e) {
-                if (e.getKeyCode() == KeyEvent.VK_UP) {
-                    e.consume();
-                }
-            }
-        });
 
         add(panelHeader, BorderLayout.NORTH);
         add(scroll, BorderLayout.CENTER);
@@ -269,7 +263,7 @@ public class TerminalTab extends JPanel {
             append("[note:" + dispatcher.getNombreArchivoEditor() + "] ");
         } else {
             append(dispatcher.estaAutenticado() ? dispatcher.getPrompt()
-                : ((disco != null && disco.estaAbierto()) ? "login: " : ""));
+                : (discoCargado ? "login: " : ""));
         }
     }
 
@@ -286,10 +280,12 @@ public class TerminalTab extends JPanel {
 
         if (entrada.toLowerCase().startsWith("format ") && resultado != null
             && !resultado.startsWith("Uso:") && !resultado.startsWith("Error")) {
+            discoCargado = true;
             java.awt.Window window = SwingUtilities.getWindowAncestor(this);
             if (window instanceof ShellFrame sf) {
                 sf.onDiscoFormateado();
             }
+            pedirLoginInicial();
         }
 
         if (resultado == null) {
@@ -309,14 +305,14 @@ public class TerminalTab extends JPanel {
                         "¿Cerrar el programa?", "Salir",
                         JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
                     if (opcion == JOptionPane.YES_OPTION) {
-                        try { disco.cerrar(); } catch (Exception ignored) {}
+                        try { if (sesion.getDisco() != null && sesion.getDisco().estaAbierto()) sesion.getDisco().cerrar(); } catch (Exception ignored) {}
                         System.exit(0);
                     }
                 } else {
                     tab.remove(this);
                     try {
                         if (tab.getTabCount() == 0) {
-                            disco.cerrar();
+                            if (sesion.getDisco() != null && sesion.getDisco().estaAbierto()) sesion.getDisco().cerrar();
                             System.exit(0);
                         }
                     } catch (Exception ignored) {}
@@ -340,7 +336,7 @@ public class TerminalTab extends JPanel {
             append("[note:" + dispatcher.getNombreArchivoEditor() + "] ");
         } else {
             append(dispatcher.estaAutenticado() ? dispatcher.getPrompt()
-                : ((disco != null && disco.estaAbierto()) ? "login: " : ""));
+                : (discoCargado ? "login: " : ""));
         }
     }
 
@@ -350,7 +346,7 @@ public class TerminalTab extends JPanel {
                 labelPrompt.setText(dispatcher.getPrompt());
                 labelUsuario.setText(dispatcher.getNombreUsuario());
             } else {
-                labelPrompt.setText(disco != null && disco.estaAbierto()
+                labelPrompt.setText(discoCargado
                     ? "login: " : "sin disco | use format");
                 labelUsuario.setText("sin sesión");
             }

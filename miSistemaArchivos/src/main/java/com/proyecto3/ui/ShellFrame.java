@@ -150,6 +150,7 @@ public class ShellFrame extends JFrame {
         btnCerrar.setBackground(new Color(60, 60, 60));
         btnCerrar.setForeground(Color.WHITE);
         btnCerrar.setFocusPainted(false);
+        btnCerrar.setFocusable(false);
         btnCerrar.addActionListener(e -> {
             if (tabbedPane.getTabCount() <= 2) {
                 int op = JOptionPane.showConfirmDialog(this,
